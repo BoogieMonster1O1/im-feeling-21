@@ -172,10 +172,11 @@ abstract class Main {
 		// if (interaction?.channel!.id !== Main.getGuildSpecificData(interaction?.guildId!).channel) {
 		// 	interaction?.reply({content: "You can only use this command in the casino channel.", ephemeral: true});
 		// 	return true;
-		// } else if (Main.getGuildSpecificData(interaction?.guildId!).locked) {
-		// 	interaction?.reply({content: "The casino is locked.", ephemeral: true});
-		// 	return true;
-		// }
+		// } else
+		if (Main.getGuildSpecificData(interaction?.guildId!).locked) {
+			interaction?.reply({content: "The casino is locked.", ephemeral: true});
+			return true;
+		}
 		return false;
 	}
 
@@ -277,15 +278,13 @@ export abstract class MinorRules {
 			.setTitle("Minor Rules")
 			.addField("Payout", "Regular wins pay `1:1`", true)
 			.addField("Blackjack Payout", "Blackjack pays `3:2`", true)
-			.addField("Double Down", "Doubling down does not depend on the value of the hand", false)
+			.addField("Insurance Payout", "Insurance pays `2:1`", true)
+			.addField("Decks", "A shoe has two decks", true).addField("Double Down", "Doubling down does not depend on the value of the hand", false)
 			.addField("Split", "Splitting can only be done on the first two cards", false)
 			.addField("Surrender", "Surrendering can only be done before any decisions are made", false)
-			.addField("Insurance", "Insurance can only be taken before any decisions are made", false)
-			.addField("Insurance Payout", "Insurance pays `2:1`", true)
-			.addField("Decks", "A shoe has two decks", true)
 			.addField("Shuffling", "The players are notified when the shoe is shuffled", false)
-			.addField("Soft 17", "The dealer stands on a Soft 17", true)
-			.addField("Ties", "Ties are pushed", true)
+			.addField("Dealing Hitting", "The dealer hits until they reach any 17", false)
+			.addField("Ties", "Ties are pushed", false)
 			.setTimestamp()
 			.setDescription("These rules vary by casino and are thus mentioned here to avoid confusion")
 	}
@@ -304,30 +303,34 @@ export abstract class MinorRules {
 @SlashGroup("admin")
 @Discord()
 export abstract class AdminCommands {
-	private static checkPerm(interaction: CommandInteraction) {
-		interaction.guild!.members.fetch(interaction.user!.id).then(member => {
-			if (!member.permissions.has("MANAGE_GUILD")) {
+	private async checkPerm(interaction: CommandInteraction) {
+		let valid = false;
+		await interaction.guild!.members.fetch(interaction.user!.id).then(member => {
+			if (!(member.permissions.has("MANAGE_GUILD") || member.permissions.has("ADMINISTRATOR"))) {
 				interaction.followUp({content: "You do not have permission to use this command", ephemeral: true});
-				return false;
+				valid = false;
+			} else {
+				valid = true;
 			}
-			return true;
 		});
-		return false;
+		return valid;
 	}
 
 	@Slash("lock")
-	public lock(interaction: CommandInteraction) {
-		if (AdminCommands.checkPerm(interaction)) {
+	public async lock(interaction: CommandInteraction) {
+		await interaction.deferReply({ephemeral: true});
+		if (await this.checkPerm(interaction)) {
 			Main.getGuildSpecificData(interaction.guild!.id).locked = true;
-			interaction.reply("Casino is now locked");
+			interaction.followUp("Casino is now locked");
 		}
 	}
 
 	@Slash("unlock")
-	public unlock(interaction: CommandInteraction) {
-		if (AdminCommands.checkPerm(interaction)) {
+	public async unlock(interaction: CommandInteraction) {
+		await interaction.deferReply({ephemeral: true});
+		if (await this.checkPerm(interaction)) {
 			Main.getGuildSpecificData(interaction.guild!.id).locked = false;
-			interaction.reply("Casino is now unlocked");
+			interaction.followUp("Casino is now unlocked");
 		}
 	}
 }
