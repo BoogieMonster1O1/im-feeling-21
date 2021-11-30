@@ -177,7 +177,7 @@ export class Hand {
 		this._stand = true;
 	}
 
-	public doubleDown(card: Card): void {
+	public doubleDown(card?: Card): void {
 		this._doubleDown = true;
 		this.hit(card);
 	}

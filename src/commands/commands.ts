@@ -87,6 +87,16 @@ abstract class SelectHandlers {
 				usd.game = undefined;
 				usd.stats.incBusts();
 				return;
+			} else if (usd.game.hand.is21()) {
+				const embed = usd.game.embed(true);
+				embed.setDescription(`You hit! You have 21! You have won ${usd.game.bet} marbles!`);
+				embed.setColor("#00FF00");
+				interaction.update({embeds: [embed], components: []});
+				usd.incMarbles(usd.game.bet * 2);
+				usd.stats.incMarblesWon(usd.game.bet);
+				usd.stats.incWins();
+				usd.game = undefined;
+				return;
 			}
 			interaction.update({embeds: [usd.game.embed(false)], components: usd.game.components()});
 			return;
@@ -95,7 +105,7 @@ abstract class SelectHandlers {
 				interaction.reply({content: "You don't have enough marbles to double down!", ephemeral: true});
 				return;
 			}
-			usd.game.hand.double();
+			usd.game.hand.doubleDown();
 			usd.game.dealerHit();
 			usd.decMarbles(usd.game.bet);
 			usd.stats.incMarblesBet(usd.game.bet);
@@ -141,6 +151,8 @@ abstract class SelectHandlers {
 				usd.stats.incLosses();
 				usd.stats.incDoubleDownLosses();
 			}
+			interaction.update({embeds: [embed], components: []});
+			usd.game = undefined;
 		}
 	}
 }
@@ -188,13 +200,15 @@ abstract class Main {
 		interaction.deferReply().then(() => {
 			usd.createGame(Main.getGuildSpecificData(interaction.guild!.id).cardFunction(interaction), bet, interaction);
 			usd.stats.incGames();
+			usd.stats.incMarblesBet(bet);
 			interaction.followUp({embeds:[usd.game.embed()], components: usd.game.components()});
 			if (usd.game.hand.isBlackjack()) {
-				interaction.editReply({embeds:[usd.game.embed()
+				interaction.editReply({embeds:[usd.game.embed(true)
 						.setColor("#00FF00")
 						.setDescription(`You have blackjack! You have won ${(usd.game.bet * 3.0/2).toFixed(0)} marbles!`)], components: usd.game.components()});
 				usd.incMarbles(bet);
 				usd.incMarbles(Number((bet * 1.5).toFixed(0)));
+				usd.stats.incMarblesWon(Number((bet * 1.5).toFixed(0)));
 				usd.game = undefined;
 			}
 		});
