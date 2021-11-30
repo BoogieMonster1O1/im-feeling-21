@@ -1,7 +1,7 @@
 {
-  "name": "discord.ts-example",
+  "name": "im-feeling-21",
   "version": "1.0.0",
-  "description": "discordx bot example",
+  "description": "A discord bot that plays blackjack",
   "keywords": [
     "discordx",
     "discord.ts",
@@ -10,18 +10,17 @@
     "discord",
     "typescript"
   ],
-  "homepage": "https://github.com/oceanroleplay/discord.ts-example#readme",
+  "homepage": "https://github.com/BoogieMonster1O1/im-feeling-21",
   "bugs": {
-    "url": "https://github.com/oceanroleplay/discord.ts-example/issues"
+    "url": "https://github.com/BoogieMonster1O1/im-feeling-21/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/oceanroleplay/discord.ts-example.git"
+    "url": "git+https://github.com/BooogieMonster1O1/im-feeling-21.git"
   },
-  "license": "MIT",
-  "author": "Indian Ocean Roleplay",
+  "license": "Apache-2.0",
+  "author": "BoogieMonster1O1",
   "contributors": [
-    "Harry <indianoceanroleplay@gmail.com> (https://github.com/oceanroleplay)"
   ],
   "type": "module",
   "main": "build/client.js",
@@ -34,8 +33,10 @@
   "dependencies": {
     "@discordx/importer": "^1.1.2",
     "@discordx/utilities": "^3.1.5",
+    "@types/filesystem": "^0.0.32",
     "discord.js": "^13.3.1",
     "discordx": "^9.0.1",
+    "mongodb": "^4.2.0",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
