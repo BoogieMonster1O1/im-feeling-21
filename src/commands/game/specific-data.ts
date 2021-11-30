@@ -140,7 +140,6 @@ export class Statistics {
 	private _stands: number = 0;
 	private _hits: number = 0;
 	private _busts: number = 0;
-	private _21s: number = 0;
 	private _insurances: number = 0;
 	private _insuranceWins: number = 0;
 	private _insuranceLosses: number = 0;
@@ -199,10 +198,6 @@ export class Statistics {
 
 	public incBusts(): void {
 		this._busts++;
-	}
-
-	public inc21s(): void {
-		this._21s++;
 	}
 
 	public incInsurances(): void {
@@ -333,10 +328,6 @@ export class Statistics {
 		return this._busts;
 	}
 
-	public get twentyOnes(): number {
-		return this._21s;
-	}
-
 	public get blackjackrate(): number {
 		return this._blackjacks / this._games;
 	}
@@ -409,7 +400,6 @@ export class Statistics {
 			.addField("Stands", `You have stood ${this.stands} times`, false)
 			.addField("Hits", `You have hit ${this.hits} times`, false)
 			.addField("Busts", `You have busted ${this.busts} times`, false)
-			.addField("21s", `You have got 21s ${this.twentyOnes} times`, false)
 			.addField("Insurance", `You have had ${this.insurances} insurances with a win rate of ${this.insuranceWinratePercent}, ${this.insuranceWins} wins and ${this.insuranceLosses} losses`, false)
 			.addField("Surrenders", `You have surrendered ${this.surrenders} times. You surrender ${this.surrenderratePercent} of the time`, false)
 			.addField("Marbles", `You have bet ${this.marblesBet} marbles and won ${this.marblesWon} marbles and lost ${this.marblesLost} marbles`, false);
@@ -430,7 +420,6 @@ export class Statistics {
 			_stands: this._stands,
 			_hits: this._hits,
 			_busts: this._busts,
-			_21s: this._21s,
 			_insurances: this._insurances,
 			_insuranceWins: this._insuranceWins,
 			_insuranceLosses: this._insuranceLosses,
@@ -456,7 +445,6 @@ export class Statistics {
 		stats._stands = json._stands;
 		stats._hits = json._hits;
 		stats._busts = json._busts;
-		stats._21s = json._21s;
 		stats._insurances = json._insurances;
 		stats._insuranceWins = json._insuranceWins;
 		stats._insuranceLosses = json._insuranceLosses;

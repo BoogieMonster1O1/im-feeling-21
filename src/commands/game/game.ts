@@ -84,18 +84,16 @@ export class Game {
 		if (this.hand.cantMakeDecision()) {
 			return [];
 		}
-
-		const arr = [
-			{label: "Hit", value: "hit", description: "Hit and draw a card", emoji: "🃏"},
-			{label: "Stand", value: "stand", description: "Reveal the dealers hand", emoji: "⤴️"},
-		];
+		const arr = [];
 		if (this.hand.canDoubleDown()) {
-			arr.push({label: "Double Down", value: "dd", description: "Double your bet, draw a card and stand", emoji: "💰"});
-			arr.push({label: "Surrender", value: "surrender", description: "Give up half your bet and end the game", emoji: "↔️"});
+			arr.push({label: "Double Down", value: "double", description: "Double your bet, draw a card and stand", emoji: "💰"});
+			arr.push({label: "Surrender", value: "surrender", description: "Give up half your bet and end the game", emoji:"💀"});
 		}
 		if (this.hand.canSplit()) {
-			arr.push({label: "Split", value: "split", description: "Split your hand into two hands", emoji: "💸"});
+			arr.push({label: "Split", value: "split", description: "Split your hand into two hands", emoji: "↔️"});
 		}
+		arr.push({label: "Hit", value: "hit", description: "Hit and draw a card", emoji: "🃏"});
+		arr.push({label: "Stand", value: "stand", description: "Reveal the dealers hand", emoji: "⤴️"});
 		return [new MessageActionRow().setComponents(new MessageSelectMenu()
 			.addOptions(arr)
 			.setCustomId("actions"))];

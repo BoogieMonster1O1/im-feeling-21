@@ -33,43 +33,59 @@ abstract class SelectHandlers {
 			const ret = (usd.game.bet / 2).toFixed(0)
 			usd.incMarbles(Number(ret));
 			usd.game.hand.surrender();
+			usd.stats.incSurrenders();
+			usd.stats.incLosses();
+			usd.stats.incMarblesLost(Math.ceil(Number(ret)));
 			interaction.update({embeds: [usd.game.embed(true).setDescription(`You surrendered! The dealer has kept half your bet and you have been returned ${ret} marbles`).setColor("#FF0000")], components: usd.game.components()});
 			usd.game = undefined;
 			return;
 		} else if (interaction.values[0] === "stand") {
 			usd.game.hand.stand();
 			usd.game.dealerHit();
+			usd.stats.incStands();
 			const embed = usd.game.embed(true);
 			if (usd.game.dealersHand.isBust()) {
 				embed.setDescription(`You stood! The dealer has busted! You have won ${usd.game.bet} marbles!`);
 				embed.setColor("#00FF00");
 				usd.incMarbles(usd.game.bet * 2);
+				usd.stats.incMarblesWon(usd.game.bet);
+				usd.stats.incWins();
 			} else if (usd.game.hand.getValuation() > usd.game.dealersHand.getValuation()) {
 				embed.setDescription(`You stood! You have won ${usd.game.bet} marbles!`);
 				embed.setColor("#00FF00");
 				usd.incMarbles(usd.game.bet * 2);
+				usd.stats.incMarblesWon(usd.game.bet);
+				usd.stats.incWins();
 			} else if (usd.game.hand.getValuation() === usd.game.dealersHand.getValuation()){
 				embed.setDescription(`You stood! You have tied with the dealer! You can keep ${usd.game.bet} marbles!`);
 				embed.setColor("#FFFF00");
 				usd.incMarbles(usd.game.bet);
+				usd.stats.incDraws();
 			} else if (usd.game.dealersHand.isBlackjack()) {
 				embed.setDescription(`You stood! The dealer has blackjack! You have lost ${usd.game.bet} marbles!`);
 				embed.setColor("#FF0000");
+				usd.stats.incMarblesLost(usd.game.bet);
+				usd.stats.incLosses();
 			} else if (usd.game.hand.getValuation() < usd.game.dealersHand.getValuation()) {
 				embed.setDescription(`You stood! You have lost ${usd.game.bet} marbles!`);
 				embed.setColor("#FF0000");
+				usd.stats.incMarblesLost(usd.game.bet);
+				usd.stats.incLosses();
 			}
 			interaction.update({embeds: [embed], components: []});
 			usd.game = undefined;
 			return;
 		} else if (interaction.values[0] === "hit") {
 			usd.game.hand.hit();
+			usd.stats.incHits();
 			if (usd.game.hand.isBust()) {
 				const embed = usd.game.embed(true);
 				embed.setDescription(`You hit! You have busted! You have lost ${usd.game.bet} marbles!`);
 				embed.setColor("#FF0000");
 				interaction.update({embeds: [embed], components: []});
+				usd.stats.incMarblesLost(usd.game.bet);
 				usd.game = undefined;
+				usd.stats.incBusts();
 				return;
 			}
 			interaction.update({embeds: [usd.game.embed(false)], components: usd.game.components()});
@@ -82,25 +98,48 @@ abstract class SelectHandlers {
 			usd.game.hand.double();
 			usd.game.dealerHit();
 			usd.decMarbles(usd.game.bet);
+			usd.stats.incMarblesBet(usd.game.bet);
+			usd.stats.incDoubleDowns();
 			const embed = usd.game.embed(true);
 			if (usd.game.dealersHand.isBust()) {
 				embed.setDescription(`You doubled down! The dealer has busted! You have won ${usd.game.bet * 2} marbles!`);
 				embed.setColor("#00FF00");
 				usd.incMarbles(usd.game.bet * 4);
+				usd.stats.incMarblesWon(usd.game.bet * 2);
+				usd.stats.incWins();
+				usd.stats.incDoubleDownWins();
+			} else if (usd.game.hand.isBust()) {
+				embed.setDescription(`You doubled down! You have busted! You lost ${usd.game.bet * 2} marbles!`);
+				embed.setColor("#FF0000");
+				usd.stats.incMarblesLost(usd.game.bet * 2);
+				usd.stats.incLosses();
+				usd.stats.incDoubleDownLosses();
+				usd.stats.incBusts();
 			} else if (usd.game.hand.getValuation() > usd.game.dealersHand.getValuation()) {
 				embed.setDescription(`You doubled down! You have won ${usd.game.bet * 2} marbles!`);
 				embed.setColor("#00FF00");
 				usd.incMarbles(usd.game.bet * 4);
+				usd.stats.incMarblesWon(usd.game.bet * 2);
+				usd.stats.incWins();
+				usd.stats.incDoubleDownWins();
 			} else if (usd.game.hand.getValuation() === usd.game.dealersHand.getValuation()){
 				embed.setDescription(`You doubled down! You have tied with the dealer! You can keep ${usd.game.bet * 2} marbles!`);
 				embed.setColor("#FFFF00");
 				usd.incMarbles(usd.game.bet * 2);
+				usd.stats.incDraws();
+				usd.stats.incDoubleDownDraws();
 			} else if (usd.game.dealersHand.isBlackjack()) {
 				embed.setDescription(`You doubled down! The dealer has blackjack! You have lost ${usd.game.bet * 2} marbles!`);
 				embed.setColor("#FF0000");
+				usd.stats.incMarblesLost(usd.game.bet * 2);
+				usd.stats.incLosses();
+				usd.stats.incDoubleDownLosses();
 			} else if (usd.game.hand.getValuation() < usd.game.dealersHand.getValuation()) {
 				embed.setDescription(`You doubled down! You have lost ${usd.game.bet * 2} marbles!`);
 				embed.setColor("#FF0000");
+				usd.stats.incMarblesLost(usd.game.bet * 2);
+				usd.stats.incLosses();
+				usd.stats.incDoubleDownLosses();
 			}
 		}
 	}
@@ -148,7 +187,16 @@ abstract class Main {
 		}
 		interaction.deferReply().then(() => {
 			usd.createGame(Main.getGuildSpecificData(interaction.guild!.id).cardFunction(interaction), bet, interaction);
+			usd.stats.incGames();
 			interaction.followUp({embeds:[usd.game.embed()], components: usd.game.components()});
+			if (usd.game.hand.isBlackjack()) {
+				interaction.editReply({embeds:[usd.game.embed()
+						.setColor("#00FF00")
+						.setDescription(`You have blackjack! You have won ${(usd.game.bet * 3.0/2).toFixed(0)} marbles!`)], components: usd.game.components()});
+				usd.incMarbles(bet);
+				usd.incMarbles(Number((bet * 1.5).toFixed(0)));
+				usd.game = undefined;
+			}
 		});
 	}
 
