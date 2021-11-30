@@ -17,8 +17,6 @@ import {
 } from "discord.js";
 // @ts-ignore
 import {GuildSpecificData, UserSpecificData} from "./game/specific-data.ts";
-// @ts-ignore
-import {generateDecks, shuffle} from "./game/card.ts";
 
 @Discord()
 abstract class SelectHandlers {

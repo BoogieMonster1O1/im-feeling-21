@@ -2,11 +2,27 @@ import "reflect-metadata";
 import { Intents, Interaction, Message } from "discord.js";
 import { Client } from "discordx";
 import { dirname, importx } from "@discordx/importer";
+import http from "http";
+import express from "express";
 
 process.on('SIGINT', () => {
 	console.log('ok baiii');
 	client.destroy();
 });
+
+if (process.env.KEEP_ALIVE == "true") {
+	const app = express();
+	app.get("/", (req, res) => {
+		console.log(Date.now() + " Ping Received");
+		res.sendStatus(200);
+	});
+
+	app.listen(process.env.PORT);
+
+	setInterval(() => {
+		http.get(`http://${process.env.PROJECT_DOMAIN}.glitch.me/`);
+	}, 280000);
+}
 
 const client = new Client({
 	simpleCommand: {
