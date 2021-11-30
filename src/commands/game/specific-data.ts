@@ -9,12 +9,13 @@ export class GuildSpecificData {
 	private _channel: string;
 	private _locked: boolean = false;
 	private readonly _id2userSpecificData: Map<string, UserSpecificData>;
-	private deck = shuffle(generateDecks(2));
+	private deck: Card[] = [];
 
 	public constructor(id: string, channel: string) {
 		this._id = id;
 		this._channel = channel;
 		this._id2userSpecificData = new Map<string, UserSpecificData>();
+		this.shuffleAndReset();
 	}
 
 	public get id(): string {
@@ -50,7 +51,7 @@ export class GuildSpecificData {
 	}
 
 	public shuffleAndReset(): void {
-		this.deck = shuffle(generateDecks(2));
+		this.deck = shuffle(generateDecks(1));
 	}
 
 	public cardFunction(interaction: Interaction): () => Card {
