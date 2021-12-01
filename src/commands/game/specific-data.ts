@@ -110,10 +110,6 @@ export class UserSpecificData {
 		return this._marbles;
 	}
 
-	public set marbles(marbles: number) {
-		this._marbles = marbles;
-	}
-
 	public get game(): Game {
 		return this._game!;
 	}
@@ -128,6 +124,10 @@ export class UserSpecificData {
 
 	public get id(): string {
 		return this._id;
+	}
+
+	public resetStats() {
+		this._stats = new Statistics();
 	}
 }
 

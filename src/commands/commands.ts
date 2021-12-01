@@ -1,4 +1,5 @@
 import {
+	ButtonComponent,
 	Discord, Permission, SelectMenuComponent,
 	Slash,
 	SlashChoice,
@@ -7,7 +8,7 @@ import {
 } from "discordx";
 import {
 	ButtonInteraction,
-	CommandInteraction, GuildMember, Interaction, Message,
+	CommandInteraction, GuildMember, Interaction, Message, MessageActionRow, MessageButton,
 	MessageEmbed, SelectMenuInteraction
 } from "discord.js";
 // @ts-ignore
@@ -337,6 +338,50 @@ export abstract class MinorRules {
 					.setFooter(`Requested by ${interaction.user.username}#${interaction.user.discriminator}`, interaction.user.avatarURL()!)
 				]});
 		});
+	}
+
+	@Slash("resetstats", { description: "Resets the stats of the current user in the current casino" })
+	public async resetStats(interaction: CommandInteraction) {
+		await interaction.deferReply();
+		interaction.reply({content: "Are you sure you want to reset your stats? This cannot be undone.", ephemeral: true, components: [StatsResetHandlers.buttonRow]});
+	}
+
+	@Slash("gift", { description: "Gives the specified user a certain amount of your marbles" })
+	public gift(
+		@SlashOption("amount", { description: "The quantity of marbles to gift", required: true })
+			amount: number,
+		@SlashOption("member", { description: "The person to whom marbles are to be gifted to", required: true })
+			member: GuildMember,
+		interaction: CommandInteraction
+	) {
+		const usd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(interaction.user.id);
+		if (usd.marbles < amount) {
+			interaction.reply("You do not have enough marbles to gift that amount");
+		} else {
+			interaction.reply({content: `Gifted ${amount} to <@${member.user.id}>. `, components: []});
+			usd.decMarbles(amount);
+			const memberUsd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(member.user.id);
+			memberUsd.incMarbles(amount);
+		}
+	}
+}
+
+@Discord()
+class StatsResetHandlers {
+	public static confirmButton: MessageButton = new MessageButton({style: "SECONDARY", label: "Confirm", customId: "confirm"});
+	public static cancelButton: MessageButton = new MessageButton({style: "SUCCESS", label: "Cancel", customId: "cancel"});
+	public static buttonRow: MessageActionRow = new MessageActionRow().addComponents([StatsResetHandlers.confirmButton, StatsResetHandlers.cancelButton]);
+
+	@ButtonComponent("confirm")
+	public confirm(interaction: ButtonInteraction) {
+		interaction.update({content: "Reset your stats", components: []})
+		const usd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(interaction.user.id);
+		usd.resetStats();
+	}
+
+	@ButtonComponent("cancel")
+	public cancel(interaction: ButtonInteraction) {
+		interaction.update({content: `Cancelled reset of stats`, components: []});
 	}
 }
 
