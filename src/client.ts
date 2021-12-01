@@ -4,7 +4,8 @@ import { Client } from "discordx";
 import { dirname, importx } from "@discordx/importer";
 import http from "http";
 import express from "express";
-import {performStopSequence} from "./commands/commands";
+// @ts-ignore
+import {performStopSequence} from "./commands/commands.ts";
 
 process.on('SIGINT', () => {
 	console.log('ok baiii');
