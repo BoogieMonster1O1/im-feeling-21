@@ -1,6 +1,4 @@
 import {
-	ButtonComponent,
-	DefaultPermissionResolver,
 	Discord, SelectMenuComponent,
 	Slash,
 	SlashChoice,
@@ -9,10 +7,7 @@ import {
 } from "discordx";
 import {
 	ButtonInteraction,
-	CommandInteraction,
-	GuildChannel,
-	MessageActionRow,
-	MessageButton,
+	CommandInteraction, Interaction, Message,
 	MessageEmbed, SelectMenuInteraction
 } from "discord.js";
 // @ts-ignore
@@ -34,7 +29,7 @@ abstract class SelectHandlers {
 			usd.stats.incSurrenders();
 			usd.stats.incLosses();
 			usd.stats.incMarblesLost(Math.ceil(Number(ret)));
-			interaction.update({embeds: [usd.game.embed(true).setDescription(`You surrendered! The dealer has kept half your bet and you have been returned ${ret} marbles`).setColor("#FF0000")], components: usd.game.components()});
+			interaction.update({embeds: [usd.game.embed(true).setDescription(`You surrendered! The dealer has kept half your bet and you have been returned ${ret} marbles`).setColor("#FF7F00")], components: usd.game.components()});
 			usd.game = undefined;
 			return;
 		} else if (interaction.values[0] === "stand") {
@@ -84,6 +79,7 @@ abstract class SelectHandlers {
 				usd.stats.incMarblesLost(usd.game.bet);
 				usd.game = undefined;
 				usd.stats.incBusts();
+				usd.stats.incLosses();
 				return;
 			} else if (usd.game.hand.is21()) {
 				const embed = usd.game.embed(true);
@@ -152,6 +148,25 @@ abstract class SelectHandlers {
 			interaction.update({embeds: [embed], components: []});
 			usd.game = undefined;
 		}
+
+		let editedTimestamp: number | null = SelectHandlers.getEditedTimestamp(interaction);
+
+		if (usd.game != undefined) {
+			setTimeout(() => {
+				if (SelectHandlers.getEditedTimestamp(interaction) == editedTimestamp) {
+					const embed = usd.game.embed(true);
+					embed.setColor("#FF0000");
+					embed.setDescription(`Timed out! The dealer has kept your bet! You have lost ${usd.game.bet} marbles`);
+					usd.stats.incLosses();
+					usd.stats.incMarblesLost(usd.game.bet);
+					usd.game = undefined;
+				}
+			}, 60000);
+		}
+	}
+
+	private static getEditedTimestamp(interaction: SelectMenuInteraction) {
+		return interaction.message instanceof Message ? interaction.message.editedTimestamp : Number(interaction.message.edited_timestamp);
 	}
 }
 
@@ -200,15 +215,25 @@ abstract class Main {
 			usd.createGame(Main.getGuildSpecificData(interaction.guild!.id).cardFunction(interaction), bet, interaction);
 			usd.stats.incGames();
 			usd.stats.incMarblesBet(bet);
-			interaction.followUp({embeds:[usd.game.embed()], components: usd.game.components()});
 			if (usd.game.hand.isBlackjack()) {
-				interaction.editReply({embeds:[usd.game.embed(true)
-						.setColor("#00FF00")
-						.setDescription(`You have blackjack! You have won ${(usd.game.bet * 3.0/2).toFixed(0)} marbles!`)], components: usd.game.components()});
+				usd.stats.incBlackjacks();
+				if (!usd.game.dealersHand.isBlackjack()) {
+					interaction.followUp({embeds:[usd.game.embed(true)
+							.setColor("#00FF00")
+							.setDescription(`You have blackjack! You have won ${(usd.game.bet * 3.0/2).toFixed(0)} marbles!`)], components: usd.game.components()});
+					usd.stats.incWins();
+					usd.incMarbles(Number((bet * 1.5).toFixed(0)));
+					usd.stats.incMarblesWon(Number((bet * 1.5).toFixed(0)));
+				} else {
+					interaction.followUp({embeds:[usd.game.embed(true)
+							.setColor("#FFFF00")
+							.setDescription(`You have blackjack! You have tied with the dealer! You can keep ${usd.game.bet} marbles!`)], components: usd.game.components()});
+					usd.stats.incDraws();
+				}
 				usd.incMarbles(bet);
-				usd.incMarbles(Number((bet * 1.5).toFixed(0)));
-				usd.stats.incMarblesWon(Number((bet * 1.5).toFixed(0)));
 				usd.game = undefined;
+			} else {
+				interaction.followUp({embeds:[usd.game.embed()], components: usd.game.components()});
 			}
 		});
 	}

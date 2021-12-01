@@ -9,7 +9,7 @@ const Db = {
 		// }
 
 		if (!dbClient) {
-			dbClient = await MongoClient.connect(process.env['?MONGO_URI']!);
+			dbClient = await MongoClient.connect(process.env['MONGO_URI']!);
 		}
 
 		return dbClient;
