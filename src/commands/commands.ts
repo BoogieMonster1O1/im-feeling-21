@@ -7,7 +7,7 @@ import {
 } from "discordx";
 import {
 	ButtonInteraction,
-	CommandInteraction, Interaction, Message,
+	CommandInteraction, GuildMember, Interaction, Message,
 	MessageEmbed, SelectMenuInteraction
 } from "discord.js";
 // @ts-ignore
@@ -23,12 +23,13 @@ abstract class SelectHandlers {
 			return;
 		}
 		if (interaction.values![0] === "surrender") {
+			// noinspection DuplicatedCode
 			const ret = (usd.game.bet / 2).toFixed(0)
 			usd.incMarbles(Number(ret));
 			usd.game.hand.surrender();
 			usd.stats.incSurrenders();
 			usd.stats.incLosses();
-			usd.stats.incMarblesLost(Math.ceil(Number(ret)));
+			usd.stats.incMarblesLost(Math.ceil(usd.game.bet / 2));
 			interaction.update({embeds: [usd.game.embed(true).setDescription(`You surrendered! The dealer has kept half your bet and you have been returned ${ret} marbles`).setColor("#FF7F00")], components: usd.game.components()});
 			usd.game = undefined;
 			return;
@@ -182,10 +183,6 @@ abstract class Main {
 	}
 
 	public static checkWrongChannel(interaction: CommandInteraction | undefined): boolean {
-		// if (interaction?.channel!.id !== Main.getGuildSpecificData(interaction?.guildId!).channel) {
-		// 	interaction?.reply({content: "You can only use this command in the casino channel.", ephemeral: true});
-		// 	return true;
-		// } else
 		if (Main.getGuildSpecificData(interaction?.guildId!).locked) {
 			interaction?.reply({content: "The casino is locked.", ephemeral: true});
 			return true;
@@ -233,7 +230,24 @@ abstract class Main {
 				usd.incMarbles(bet);
 				usd.game = undefined;
 			} else {
-				interaction.followUp({embeds:[usd.game.embed()], components: usd.game.components()});
+				interaction.followUp({embeds: [usd.game.embed()], components: usd.game.components()}).then(r => {
+					setTimeout(() => {
+						let timestamp = r instanceof Message ? r.editedTimestamp : Number(r.edited_timestamp);
+						if (timestamp == null && usd.game.interaction == interaction && usd.game.hand != undefined) {
+							// noinspection DuplicatedCode
+							const ret = (usd.game.bet / 2).toFixed(0)
+							usd.incMarbles(Number(ret));
+							usd.game.hand.surrender();
+							usd.stats.incSurrenders();
+							usd.stats.incLosses();
+							usd.stats.incMarblesLost(Math.ceil(usd.game.bet / 2));
+							interaction.editReply({embeds: [usd.game.embed(true)
+									.setColor("#FF7F00")
+									.setDescription(`Timed out! The dealer has kept half your bet and you have been returned ${ret} marbles!`)], components: usd.game.components()});
+							usd.game = undefined;
+						}
+					}, 60000);
+				});
 			}
 		});
 	}
@@ -308,6 +322,7 @@ export abstract class MinorRules {
 			.addField("Shuffling", "The players are notified when the shoe is shuffled", false)
 			.addField("Dealing Hitting", "The dealer hits until they reach any 17", false)
 			.addField("Ties", "Ties are pushed", false)
+			.addField("Timing out", "Games time out after 60 seconds and are automatically surrendered/lost (whichever applicable)", false)
 			.setTimestamp()
 			.setDescription("These rules vary by casino and are thus mentioned here to avoid confusion")
 	}
@@ -354,6 +369,21 @@ export abstract class AdminCommands {
 		if (await this.checkPerm(interaction)) {
 			Main.getGuildSpecificData(interaction.guild!.id).locked = false;
 			interaction.followUp("Casino is now unlocked");
+		}
+	}
+
+	@Slash("setmarbles")
+	public async setMarbles(
+		@SlashOption("amount", { description: "The quantity of marbles to set", required: true })
+			amount: number,
+		@SlashOption("member", { description: "The person whose marbles are to be set", required: true })
+			member: GuildMember,
+		interaction: CommandInteraction
+	) {
+		await interaction.deferReply({ephemeral: true});
+		if (await this.checkPerm(interaction)) {
+			Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(member.id).marbles = amount;
+			interaction.followUp(`<@${member.user.id}> now has ${amount} marbles`);
 		}
 	}
 }

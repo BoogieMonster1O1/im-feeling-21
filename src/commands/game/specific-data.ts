@@ -110,6 +110,10 @@ export class UserSpecificData {
 		return this._marbles;
 	}
 
+	public set marbles(marbles: number) {
+		this._marbles = marbles;
+	}
+
 	public get game(): Game {
 		return this._game!;
 	}
