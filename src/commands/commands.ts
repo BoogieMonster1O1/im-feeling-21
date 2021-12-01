@@ -288,16 +288,11 @@ abstract class Main {
 	}
 
 	@Slash("stats", { description: "Shows the stats of the current user in the current casino" })
-	public stats(
-		@SlashChoice("All", "all")
-		@SlashChoice("Less", "less")
-		@SlashOption("kind", { description: "The quantity of data to show", required: false })
-			kind: string,
-		interaction: CommandInteraction) {
+	public stats(interaction: CommandInteraction) {
 		if (Main.checkWrongChannel(interaction)) return;
 		const p = interaction.deferReply();
 		const usd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(interaction.user.id);
-		const stats = kind === "all" ? usd.stats.extendedEmbed : usd.stats.embed;
+		const stats = usd.stats.embed;
 		p.then(() => {
 			interaction.followUp({embeds: [
 					stats
@@ -306,6 +301,31 @@ abstract class Main {
 						.setFooter(`Requested by ${interaction.user.username}#${interaction.user.discriminator}`, interaction.user.avatarURL()!)
 				]});
 		});
+	}
+
+	@Slash("resetstats", { description: "Resets the stats of the current user in the current casino" })
+	public async resetStats(interaction: CommandInteraction) {
+		await interaction.deferReply();
+		interaction.reply({content: "Are you sure you want to reset your stats? This cannot be undone.", ephemeral: true, components: [StatsResetHandlers.buttonRow]});
+	}
+
+	@Slash("gift", { description: "Gives the specified user a certain amount of your marbles" })
+	public gift(
+		@SlashOption("amount", { description: "The quantity of marbles to gift", required: true })
+			amount: number,
+		@SlashOption("member", { description: "The person to whom marbles are to be gifted to", required: true })
+			member: GuildMember,
+		interaction: CommandInteraction
+	) {
+		const usd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(interaction.user.id);
+		if (usd.marbles < amount) {
+			interaction.reply("You do not have enough marbles to gift that amount");
+		} else {
+			interaction.reply({content: `Gifted ${amount} to <@${member.user.id}>. `, components: []});
+			usd.decMarbles(amount);
+			const memberUsd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(member.user.id);
+			memberUsd.incMarbles(amount);
+		}
 	}
 }
 
@@ -339,38 +359,14 @@ export abstract class MinorRules {
 				]});
 		});
 	}
-
-	@Slash("resetstats", { description: "Resets the stats of the current user in the current casino" })
-	public async resetStats(interaction: CommandInteraction) {
-		await interaction.deferReply();
-		interaction.reply({content: "Are you sure you want to reset your stats? This cannot be undone.", ephemeral: true, components: [StatsResetHandlers.buttonRow]});
-	}
-
-	@Slash("gift", { description: "Gives the specified user a certain amount of your marbles" })
-	public gift(
-		@SlashOption("amount", { description: "The quantity of marbles to gift", required: true })
-			amount: number,
-		@SlashOption("member", { description: "The person to whom marbles are to be gifted to", required: true })
-			member: GuildMember,
-		interaction: CommandInteraction
-	) {
-		const usd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(interaction.user.id);
-		if (usd.marbles < amount) {
-			interaction.reply("You do not have enough marbles to gift that amount");
-		} else {
-			interaction.reply({content: `Gifted ${amount} to <@${member.user.id}>. `, components: []});
-			usd.decMarbles(amount);
-			const memberUsd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(member.user.id);
-			memberUsd.incMarbles(amount);
-		}
-	}
 }
 
 @Discord()
 class StatsResetHandlers {
-	public static confirmButton: MessageButton = new MessageButton({style: "SECONDARY", label: "Confirm", customId: "confirm"});
-	public static cancelButton: MessageButton = new MessageButton({style: "SUCCESS", label: "Cancel", customId: "cancel"});
-	public static buttonRow: MessageActionRow = new MessageActionRow().addComponents([StatsResetHandlers.confirmButton, StatsResetHandlers.cancelButton]);
+	public static buttonRow: MessageActionRow = new MessageActionRow().addComponents([
+		new MessageButton({style: "SECONDARY", label: "Confirm", customId: "confirm"}),
+		new MessageButton({style: "SUCCESS", label: "Cancel", customId: "cancel"})
+	]);
 
 	@ButtonComponent("confirm")
 	public confirm(interaction: ButtonInteraction) {

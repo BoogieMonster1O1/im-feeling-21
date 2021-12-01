@@ -394,11 +394,7 @@ export class Statistics {
 			.addField("Games", `You have played ${this.games} games`, false)
 			.addField("Wins", `You have won ${this.wins} games (${this.winratePercent}%)`, true)
 			.addField("Losses", `You have lost ${this.losses} games (${this.lossratePercent}%)`, true)
-			.addField("Draws", `You have drawn ${this.draws} games (${this.drawratePercent}%)`, true);
-	}
-
-	public get extendedEmbed(): MessageEmbed {
-		return this.embed
+			.addField("Draws", `You have drawn ${this.draws} games (${this.drawratePercent}%)`, true)
 			.addField("Double Downs", `You have played ${this.doubleDowns} double downs with a win rate of ${this.doubleDownWinratePercent}, ${this.doubleDownWins} wins, ${this.doubleDownLosses} losses and ${this.doubleDownDraws} draws`, false)
 			.addField("Blackjacks", `You have had ${this.blackjacks} blackjacks. You have had a blackjack ${this.blackjackrate * 100}% of the time`, false)
 			.addField("Splits", `You have had ${this.splits} splits`, false)
