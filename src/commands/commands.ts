@@ -169,6 +169,30 @@ abstract class SelectHandlers {
 		}
 	}
 
+	@ButtonComponent("insurance")
+	public async insurance(interaction: ButtonInteraction) {
+		const usd = Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(interaction.user.id);
+		const embed = usd.game.embed(true);
+		usd.stats.incInsurances();
+		if (usd.game.dealersHand.isBlackjack()) {
+			embed.setColor("#00FF00");
+			embed.setDescription(`You insured! The dealer has a blackjack! You have won ${usd.game.bet * 2} marbles!`);
+			usd.incMarbles(usd.game.bet * 2);
+			usd.incMarbles(usd.game.bet);
+			usd.stats.incWins();
+			usd.stats.incMarblesWon(usd.game.bet * 2)
+			usd.stats.incInsuranceWins();
+		} else {
+			embed.setColor("#FF0000");
+			embed.setDescription(`You insured! The dealer does not have a blackjack! You lost ${usd.game.bet} marbles!`);
+			usd.stats.incLosses();
+			usd.stats.incMarblesLost(usd.game.bet);
+			usd.stats.incInsuranceLosses();
+		}
+		await interaction.update({embeds: [embed], components: []});
+		usd.game = undefined;
+	}
+
 	private static getEditedTimestamp(interaction: SelectMenuInteraction) {
 		return interaction.message instanceof Message ? interaction.message.editedTimestamp : Number(interaction.message.edited_timestamp);
 	}
@@ -236,7 +260,7 @@ abstract class Main {
 				interaction.followUp({embeds: [usd.game.embed()], components: usd.game.components()}).then(r => {
 					setTimeout(() => {
 						let timestamp = r instanceof Message ? r.editedTimestamp : Number(r.edited_timestamp);
-						if (timestamp == null && usd.game.interaction == interaction && usd.game.hand != undefined) {
+						if (timestamp == null && usd.game != null && usd.game.interaction == interaction) {
 							// noinspection DuplicatedCode
 							const ret = (usd.game.bet / 2).toFixed(0)
 							usd.incMarbles(Number(ret));
@@ -306,7 +330,7 @@ abstract class Main {
 	@Slash("resetstats", { description: "Resets the stats of the current user in the current casino" })
 	public async resetStats(interaction: CommandInteraction) {
 		await interaction.deferReply();
-		interaction.reply({content: "Are you sure you want to reset your stats? This cannot be undone.", ephemeral: true, components: [StatsResetHandlers.buttonRow]});
+		interaction.followUp({content: "Are you sure you want to reset your stats? This cannot be undone.", ephemeral: true, components: [StatsResetHandlers.buttonRow]});
 	}
 
 	@Slash("gift", { description: "Gives the specified user a certain amount of your marbles" })

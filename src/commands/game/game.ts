@@ -1,5 +1,5 @@
 // @ts-ignore
-import {Card, CardFace} from "./card.ts";
+import {Card, CardFace, Suit} from "./card.ts";
 // @ts-ignore
 import {getBestValue, is21, isBlackjack, isBust} from "./value-util.ts";
 import {
@@ -49,13 +49,6 @@ export class Game {
 		return this._bet;
 	}
 
-	public deal(): void {
-		this._hand.hit(this._cardFunction());
-		this._hand.hit(this._cardFunction());
-		this._dealersHand.hit(this._cardFunction());
-		this._dealersHand.hit(this._cardFunction());
-	}
-
 	public dealerHit(): void {
 		while (this.dealersHand.getValuation() < 17) {
 			this._dealersHand.hit(this._cardFunction());
@@ -80,23 +73,33 @@ export class Game {
 		return embed;
 	}
 
+	private static insuranceActionRow: MessageActionRow = new MessageActionRow().addComponents(new MessageButton({customId: "insurance", label: "Insurance", emoji: "🏦", style: "PRIMARY"}));
+
 	public components(): MessageComponent[] {
 		if (this.hand.cantMakeDecision()) {
 			return [];
 		}
 		const arr = [];
+		let insurance = false;
 		if (this.hand.canDoubleDown()) {
 			arr.push({label: "Double Down", value: "double", description: "Double your bet, draw a card and stand", emoji: "💰"});
 			arr.push({label: "Surrender", value: "surrender", description: "Give up half your bet and end the game", emoji:"💀"});
+			if (this.dealersHand.cards[0].face === CardFace.ACE) {
+				insurance = true;
+			}
 		}
 		if (this.hand.canSplit()) {
 			arr.push({label: "Split", value: "split", description: "Split your hand into two hands", emoji: "↔️"});
 		}
 		arr.push({label: "Hit", value: "hit", description: "Hit and draw a card", emoji: "🃏"});
 		arr.push({label: "Stand", value: "stand", description: "Reveal the dealers hand", emoji: "⤴️"});
-		return [new MessageActionRow().setComponents(new MessageSelectMenu()
+		const comps = [new MessageActionRow().setComponents(new MessageSelectMenu()
 			.addOptions(arr)
 			.setCustomId("actions"))];
+		if (insurance) {
+			comps.push(Game.insuranceActionRow);
+		}
+		return comps;
 	}
 }
 

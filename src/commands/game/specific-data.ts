@@ -395,14 +395,14 @@ export class Statistics {
 			.addField("Wins", `You have won ${this.wins} games (${this.winratePercent}%)`, true)
 			.addField("Losses", `You have lost ${this.losses} games (${this.lossratePercent}%)`, true)
 			.addField("Draws", `You have drawn ${this.draws} games (${this.drawratePercent}%)`, true)
-			.addField("Double Downs", `You have played ${this.doubleDowns} double downs with a win rate of ${this.doubleDownWinratePercent}, ${this.doubleDownWins} wins, ${this.doubleDownLosses} losses and ${this.doubleDownDraws} draws`, false)
+			.addField("Double Downs", `You have played ${this.doubleDowns} double downs with a win rate of ${this.doubleDownWinratePercent}%, ${this.doubleDownWins} wins, ${this.doubleDownLosses} losses and ${this.doubleDownDraws} draws`, false)
 			.addField("Blackjacks", `You have had ${this.blackjacks} blackjacks. You have had a blackjack ${this.blackjackrate * 100}% of the time`, false)
 			.addField("Splits", `You have had ${this.splits} splits`, false)
 			.addField("Stands", `You have stood ${this.stands} times`, false)
 			.addField("Hits", `You have hit ${this.hits} times`, false)
 			.addField("Busts", `You have busted ${this.busts} times`, false)
-			.addField("Insurance", `You have had ${this.insurances} insurances with a win rate of ${this.insuranceWinratePercent}, ${this.insuranceWins} wins and ${this.insuranceLosses} losses`, false)
-			.addField("Surrenders", `You have surrendered ${this.surrenders} times. You surrender ${this.surrenderratePercent} of the time`, false)
+			.addField("Insurance", `You have had ${this.insurances} insurances with a win rate of ${this.insuranceWinratePercent}%, ${this.insuranceWins} wins and ${this.insuranceLosses} losses`, false)
+			.addField("Surrenders", `You have surrendered ${this.surrenders} times. You surrender ${this.surrenderratePercent}% of the time`, false)
 			.addField("Marbles", `You have bet ${this.marblesBet} marbles and won ${this.marblesWon} marbles and lost ${this.marblesLost} marbles`, false);
 	}
 
