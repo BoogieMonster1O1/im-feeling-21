@@ -1,5 +1,5 @@
 import {
-	Discord, SelectMenuComponent,
+	Discord, Permission, SelectMenuComponent,
 	Slash,
 	SlashChoice,
 	SlashGroup,
@@ -12,6 +12,8 @@ import {
 } from "discord.js";
 // @ts-ignore
 import {GuildSpecificData, UserSpecificData} from "./game/specific-data.ts";
+// @ts-ignore
+import { client } from "../client.ts";
 
 @Discord()
 abstract class SelectHandlers {
@@ -386,4 +388,37 @@ export abstract class AdminCommands {
 			interaction.followUp(`<@${member.user.id}> now has ${amount} marbles`);
 		}
 	}
+
+	@Slash("addmarbles")
+	public async addmarbles(
+		@SlashOption("amount", { description: "The quantity of marbles to add", required: true })
+			amount: number,
+		@SlashOption("member", { description: "The person whose marbles are to be added to", required: true })
+			member: GuildMember,
+		interaction: CommandInteraction
+	) {
+		await interaction.deferReply({ephemeral: true});
+		if (await this.checkPerm(interaction)) {
+			let act = Math.max(Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(member.id).marbles + amount, 0);
+			Main.getGuildSpecificData(interaction.guild!.id).getUserSpecificData(member.id).marbles = act;
+			interaction.followUp(`<@${member.user.id}> now has ${act} marbles`);
+		}
+	}
+}
+
+@Discord()
+@SlashGroup("superadmin")
+@Permission(false)
+@Permission({ id: "699945276156280893", type: "USER", permission: true })
+@Permission({ id: "684428788481917044", type: "USER", permission: true })
+export abstract class SuperAdminCommands {
+	@Slash("stop")
+	public stop(interaction: CommandInteraction) {
+		performStopSequence(interaction);
+	}
+}
+
+export async function performStopSequence(interaction?: CommandInteraction) {
+	await interaction?.reply({content: "Stopping...", ephemeral: true});
+	client.destroy();
 }

@@ -4,10 +4,11 @@ import { Client } from "discordx";
 import { dirname, importx } from "@discordx/importer";
 import http from "http";
 import express from "express";
+import {performStopSequence} from "./commands/commands";
 
 process.on('SIGINT', () => {
 	console.log('ok baiii');
-	client.destroy();
+	performStopSequence();
 });
 
 if (process.env.KEEP_ALIVE == "true") {
@@ -24,7 +25,7 @@ if (process.env.KEEP_ALIVE == "true") {
 	}, 280000);
 }
 
-const client = new Client({
+export const client = new Client({
 	simpleCommand: {
 		prefix: "!",
 	},
