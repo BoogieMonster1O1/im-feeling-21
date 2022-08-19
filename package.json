@@ -38,7 +38,7 @@
     "discordx": "^9.0.1",
     "express": "^4.17.1",
     "http": "^0.0.1-security",
-    "mongodb": "^4.2.0",
+    "mongodb": "^4.9.0",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
